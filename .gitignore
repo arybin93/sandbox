@@ -1,0 +1,10 @@
+.idea
+*.log
+*.pyc
+media/*
+!media/.gitdir
+static/*
+!static/.gitdir
+*.db
+env/*
+uploads/*
