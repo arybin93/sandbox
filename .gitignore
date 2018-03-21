@@ -2,6 +2,8 @@
 *.log
 *.pyc
 media/*
+data/*
+result/*
 !media/.gitdir
 static/*
 !static/.gitdir

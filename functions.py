@@ -1,12 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
-# useful functions
-
-# acceleration of gravity
-GG = 9.81
-
+from constance import GG
 
 # read any file
 def read_file(fname, path=r"C:\Users\Rybin\PycharmProjects\science\data", skip_rows=0):
@@ -14,6 +9,12 @@ def read_file(fname, path=r"C:\Users\Rybin\PycharmProjects\science\data", skip_r
     print("read file ", fname)
     data = np.loadtxt(fname, skiprows=skip_rows)
     return data
+
+
+def write_file(fname, data):
+    os.chdir(r"D:\\ScientificWork\Work\SpainData\result_data")
+    print("write file ", fname)
+    np.savetxt(fname, data, '%10.5f    %10.5f    %2.2f    %2.2f    %10.5f    %10.5f    %10.5f    %10.5f')
 
 
 def write_file_pre_coeffs(fname, data):
@@ -198,6 +199,6 @@ def spain_task():
         # save result to file
         data_for_save = np.c_[res_lon, res_lat , res_max_depth, res_depth, res_temperature, res_salinity, res_rho, res_bvf]
         fname = filenamesTemperature[i].replace("temperature", "data")
-        #write_file(fname, data_for_save)
+        write_file(fname, data_for_save)
 
     print("Done")

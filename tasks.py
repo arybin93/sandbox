@@ -148,20 +148,93 @@ def merge_files(files):
                 res_z_max_Phi.append(z_max_Phi[i])
                 res_max_Phi.append(max_Phi[i])
 
-    res_lon = np.array(res_lon)
-    res_lat = np.array(res_lat)
-    res_depth = np.array(res_depth)
-    res_c = np.array(res_depth)
-    res_alpha = np.array(res_c)
-    res_alpha1 = np.array(res_alpha)
-    res_beta = np.array(res_alpha1)
-    res_z_min_Phi = np.array(res_beta)
-    res_min_Phi = np.array(res_min_Phi)
-    res_z_zer_Phi = np.array(res_z_zer_Phi)
-    res_z_max_Phi = np.array(res_z_max_Phi)
-    res_max_Phi = np.array(res_max_Phi)
+    res_lon_ = np.array(res_lon)
+    res_lat_ = np.array(res_lat)
+    res_depth_ = np.array(res_depth)
+    res_c_ = np.array(res_c)
+    res_alpha_ = np.array(res_alpha)
+    res_alpha1_ = np.array(res_alpha1)
+    res_beta_ = np.array(res_beta)
+    res_z_min_Phi_ = np.array(res_z_min_Phi)
+    res_min_Phi_ = np.array(res_min_Phi)
+    res_z_zer_Phi_ = np.array(res_z_zer_Phi)
+    res_z_max_Phi_ = np.array(res_z_max_Phi)
+    res_max_Phi_ = np.array(res_max_Phi)
 
     # save new file
-    data_for_save = np.c_[res_lon, res_lat, res_depth, res_c, res_alpha, res_alpha1, res_beta, res_z_min_Phi,
-                          res_min_Phi, res_z_zer_Phi, res_z_max_Phi, res_max_Phi]
+    data_for_save = np.c_[res_lon_, res_lat_, res_depth_, res_c_, res_alpha_, res_alpha1_, res_beta_, res_z_min_Phi_,
+                          res_min_Phi_, res_z_zer_Phi_, res_z_max_Phi_, res_max_Phi_]
     functions.write_file_coeffs('GDEM_JAN_KDV_result', data_for_save)
+
+
+'''
+
+    # Okhotsk Sea
+    #get_rectangle_area(lon_start=135.0, lat_start=40.0, lon_end=165.0, lat_end=65.0)
+    # Japan Sea
+    #get_rectangle_area(lon_start=126.5, lat_start=34.0, lon_end=140.0, lat_end=50.0)
+    # Bering Sea, SQ4
+    #get_rectangle_area(lon_start=157, lat_start=51.0, lon_end=210.0, lat_end=71.0)
+    # Bering Sea, SQ1
+    #get_rectangle_area(lon_start=157, lat_start=51.0, lon_end=210.0, lat_end=71.0)
+
+    # open all files, concatenate unique points
+
+    list_files_jul = [
+        'GDEM_JUL_KDV_Bering_sea',
+        'GDEM_JUL_SQ4_KDV_Japan_sea',
+        'GDEM_JUL_SQ4_KDV_Okhotsk_sea',
+        'GDEM_JUL_SQ4_KDV_UKM'
+    ]
+
+    list_files_jan = [
+        'GDEM_JAN_KDV_Bering_sea',
+        'GDEM_JAN_SQ4_KDV_Japan_sea',
+        'GDEM_JAN_SQ4_KDV_Okhotsk_sea',
+        'GDEM_JAN_SQ4_KDV_UKM'
+    ]
+
+    #merge_files(list_files_jan)
+    import re
+
+    # current task
+    with open('data/cards2.txt', "r", encoding="utf8") as file:
+        read_data = file.read()
+        cards = re.findall(r'\"(.+?)\"', read_data)
+
+        list = []
+        for i, card in enumerate(cards):
+            if card not in list:
+                list.append(card)
+
+    with open('data/cards_result.txt', "w", encoding="utf8") as file_card:
+        for card in list:
+            file_card.write(card + ',')
+
+ with open('data/file.txt', "r", encoding="utf8") as file:
+        read_data = file.read()
+        result_accounts = read_data.split('\n')
+        result_accounts.pop()
+
+        with open('data/cards.txt', "w", encoding="utf8") as file_card:
+            file_card.write('Карта   Владелец   Номер телефона \n\r')
+            for index, acc in enumerate(result_accounts):
+                values = acc.split('|')
+                try:
+                    values[1]
+                except IndexError:
+                    # Not found
+                    print('Not found')
+                else:
+                    account = {}
+                    account['phone1'] = values[9]
+
+                    if account['phone1'] != '':
+                        pass
+                        #print(values[1])
+                    else:
+                        card_number = int(values[1])
+                        if index < 35492:
+                            file_card.write(values[1] + ' - ' + values[3] + ' - ' +  values[9] + '\n')
+
+'''

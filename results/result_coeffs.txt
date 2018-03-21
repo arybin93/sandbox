@@ -1,1 +1,0 @@
-     dist_m        lat        lon      depth                    c                alpha               alpha1                 beta            z_min_Phi              min_Phi            z_zer_Phi            z_max_Phi              max_Phi             int_phi2
