@@ -1,5 +1,6 @@
 import time
 
+
 def how_many_time(original_function):
     def new_function():
         print('Start')
