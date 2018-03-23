@@ -46,10 +46,6 @@ def exp_random():
     print('Time: {0:.12f}.'.format(finish_time))
 
 
-def test_commit():
-    pass
-
-
 def run():
     exp_random_no_opt()
     exp_random()
