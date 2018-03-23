@@ -5,7 +5,7 @@ from experiments.randomdict import run
 
 def main():
     # run tasks, experiments or another scripts
-    pass
+    run()
 
 
 if __name__ == '__main__':
