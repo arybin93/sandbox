@@ -58,37 +58,63 @@ def calc_coeffs_point():
     c = np.zeros(2)
     for i in range(0, max_mode):
         current_mode = i + 1
+        print('Current mode {}'.format(current_mode))
         c[i] = max_bvf * max_depth / PI / current_mode
+        dc = c[i]
 
-        '''
+        z_zer = np.zeros(max_mode + 1)
+        iter = 0
+        z = np.linspace(rev_z[0], rev_z[-1], 1000)  # the points of evaluation of solution
+        init_cond = [0, 0.01]  # initial value
         while True:
-            init_cond = [0, 0.1]
             solver = integrate.ode(sys_phi).set_integrator('dopri5', rtol=1e-4, atol=[1e-6])
             solver.set_f_params(c[i], N)
-            solver.set_initial_value(init_cond)
+            solver.set_initial_value(init_cond, rev_z[0])
 
+            # Additional Python step: create vectors to store trajectories
+            z_grid = np.zeros((len(z), 1))
+            phi = np.zeros((len(z), 1))
+            dPhi = np.zeros((len(z), 1))
+            phi[0] = 0
+            dPhi[0] = 0
 
+            # Integrate the ODE(s) across each delta_z
+            zero_counter = 0
+            for k in range(1, z.size):
+                res = solver.integrate(z[k])
 
-            #plt.plot(phi, z)
+                if not solver.successful():
+                    raise RuntimeError("Could not integrate")
+
+                # Store the results
+                z_grid[k] = z[k]
+                phi[k] = res[0]
+                dPhi[k] = res[1]
+
+            #plt.plot(phi, z_grid)
             #plt.gca().invert_yaxis()
             #plt.show()
 
-            break
-        '''
+            n_z_grid = len(z_grid) - 1
+            for j in range(1, n_z_grid):
+                if phi[j-1] * phi[j] < 0:
+                    zero_counter += 1
+                    z_zer[zero_counter] = z_grid[j - 1]
+            z_zer_Phi = z_zer[i]
 
-'''
-t0, t1 = 0, 20  # start and end
-t = np.linspace(t0, t1, 100)  # the points of evaluation of solution
-y0 = [2, 0]  # initial value
-y = np.zeros((len(t), len(y0)))  # array for solution
-y[0, :] = y0
-r = integrate.ode(vdp1).set_integrator("dopri5")  # choice of method
-r.set_initial_value(y0, t0)  # initial values
-for i in range(1, t.size):
-    y[i, :] = r.integrate(t[i])  # get one more value, add it to the array
-    if not r.successful():
-        raise RuntimeError("Could not integrate")
+            print(iter)
+            print('c = {}'.format(c[i]))
+            print(np.abs(phi[n_z_grid]/max(phi)))
+            print(epsilon_f)
+            iter += 1
 
-plt.plot(t, y)
-plt.show()
-'''
+            if np.abs(phi[n_z_grid]/max(phi)) <= epsilon_f:
+                break
+            elif dc < 1e-10:
+                raise RuntimeError("Could not integrate")
+            elif zero_counter <= i:
+                dc /= 2
+                c[i] -= dc
+            elif zero_counter > i:
+                dc /= 2
+                c[i] += dc
