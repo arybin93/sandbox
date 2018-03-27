@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from decorators import how_many_time
 from experiments.randomdict import run
-from tasks.igwcoeffs import calc_coeffs_point
+from tasks.igwcoeffs import calc_coeffs_point, calc_coeffs_point_new
 
 
 def main():
     # run tasks, experiments or another scripts
     calc_coeffs_point()
+    calc_coeffs_point_new()
 
 
 if __name__ == '__main__':
