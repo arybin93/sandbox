@@ -7,7 +7,6 @@ from tasks.igwcoeffs import calc_coeffs_point, calc_coeffs_point_new
 def main():
     # run tasks, experiments or another scripts
     calc_coeffs_point()
-    calc_coeffs_point_new()
 
 
 if __name__ == '__main__':
