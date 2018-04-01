@@ -30,7 +30,8 @@ def sys_phi(y, z, N, c):
 
 
 def func_r(z, c, alpha, dif_phi, dif2_phi):
-    rhs = (-alpha/c + 3 * dif_phi(z)* dif2_phi(z))
+    #print(dif2_phi(z))
+    rhs = (-alpha/c + 3 * dif_phi(z) * dif2_phi(z))
     return rhs
 
 
@@ -69,6 +70,7 @@ def calc_coeffs_point():
     c = np.zeros(2)
     beta = np.zeros(2)
     alpha = np.zeros(2)
+    alpha1 = np.zeros(2)
     for i in range(0, max_mode):
         current_mode = i + 1
         print('Current mode {}'.format(current_mode))
@@ -93,6 +95,7 @@ def calc_coeffs_point():
             z_zer_Phi = z_zer[i]
 
             if np.abs(phi[-1] / np.max(phi)) <= epsilon_f:
+                print('c finished')
                 break
             elif dc < 1e-10:
                 raise RuntimeError("Could not integrate")
@@ -130,28 +133,66 @@ def calc_coeffs_point():
         beta[i] = (c[i]/2) * np.trapz(num_beta, z)/np.trapz(denom, z)
         alpha[i] = (3*c[i]/2) * np.trapz(num_alpha, z)/np.trapz(denom, z)
 
-        print(c)
-        print(beta)
-        print(alpha)
-
         # alpha 1
         t_end_prev = 0.0
         init_cond = [0, 0.01]  # initial value
 
         dif_phi = interp1d(z, dphi, kind='cubic', fill_value="extrapolate")
-        d2phi = numpy.gradient(dphi, z)
-        dif2_phi = interp1d(z,d2phi, kind='cubic', fill_value="extrapolate")
+        temp = np.diff(dphi)/np.diff(z)
+        print(np.diff(dphi))
+        d2phi = temp
+        print(len(d2phi))
 
+        plt.plot(d2phi, z)
+        # plt.gca().invert_yaxis()
+        plt.show()
+
+        dif2_phi = interp1d(z,d2phi, kind='cubic', fill_value="extrapolate")
+        iter = 0
         while True:
             sol = odeint(sys_f_or_tn, init_cond, z, args=(N, c[i], alpha[i], dif_phi, dif2_phi),
                          rtol=[1e-4, 1e-4], atol=[1e-6, 1e-6])
             t = sol[:, 0] # F or Tn
             dt = sol[:, 1] # dF or dTn
-            # TODO
 
-        plt.plot(phi, z)
-        plt.gca().invert_yaxis()
-        plt.show()
+            t_zmax = t[ind_max_phi]
+            coef = -np.sign(phi[ind_max_phi])
+
+            t_z_phi = t + coef * t_zmax*phi
+            dt_z_phi = dt + coef * t_zmax*dphi
+
+            t_end = t_z_phi[n_z_grid]
+
+            dt_1 = dt_z_phi[0]
+
+            # temp solution for small depths
+            if np.max(z_down) <= 20:
+                epsilon_t = epsilon_t_rough
+            else:
+                epsilon_t = epsilot_t_exact
+
+            iter +=1
+            print(iter)
+            if np.abs(t_end - t_end_prev) <= epsilon_t or (np.abs(t_end / np.max(np.abs(t_z_phi))) <= epsilon_t):
+                print('Tn or F finished')
+                break
+
+            init_cond = [0, dt_1]
+            t_end_prev = t_end
+
+        # Chapter 4 Pelinovsky et al 2007
+        term1_a1 = 9 * c[i] * dt_z_phi * denom
+        term2_a1 = -6 * c[i] * denom * denom
+        term3_a1 = 5 * alpha[i] * num_alpha
+        term4_a1 = -4 * alpha[i] * dt_z_phi * dphi
+        term5_a1 = -(alpha[i])**2 / c[i] * denom
+        num_alpha1 = term1_a1 + term2_a1 + term3_a1 + term4_a1 + term5_a1
+        alpha1[i] = 1/2 * np.trapz(num_alpha1, z)/np.trapz(denom, z)
+
+        print(c)
+        print(beta)
+        print(alpha)
+        print(alpha1)
 
 
 def sys_phi_new(z, y, c, N):
