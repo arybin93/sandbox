@@ -12,8 +12,8 @@ max_mode = 1
 epsilon_f = 1e-4
 epsilon_t = 1e-4
 
-epsilon_t_rough = 1e-2
-epsilot_t_exact = 1e-3
+epsilon_t_rough = 1e-4
+epsilot_t_exact = 1e-5
 
 
 def read_file(fname, path=r"C:\Users\Rybin\PycharmProjects\sandbox\resources\data", skip_rows=0):
@@ -30,8 +30,7 @@ def sys_phi(y, z, N, c):
 
 
 def func_r(z, c, alpha, dif_phi, dif2_phi):
-    #print(dif2_phi(z))
-    rhs = (-alpha/c + 3 * dif_phi(z) * dif2_phi(z))
+    rhs = (-alpha/c + 3 * dif_phi(z)) * dif2_phi(z)
     return rhs
 
 
@@ -92,7 +91,7 @@ def calc_coeffs_point():
                 if phi[j - 1] * phi[j] < 0:
                     zero_counter += 1
                     z_zer[zero_counter] = z[j - 1]
-            z_zer_Phi = z_zer[i]
+            z_zer_phi = z_zer[i]
 
             if np.abs(phi[-1] / np.max(phi)) <= epsilon_f:
                 print('c finished')
@@ -109,8 +108,8 @@ def calc_coeffs_point():
         min_phi, ind_min_phi = np.min(phi), np.argmin(phi)
         # second mode, pronounced minimum
         if np.abs(min_phi) > 10**(-1):
-            phi = phi * (-1)
-            dphi = dphi * (-1)
+            phi *= (-1)
+            dphi *= (-1)
 
         max_phi, ind_max_phi = np.max(phi), np.argmax(phi)
         min_phi, ind_min_phi = np.min(phi), np.argmin(phi)
@@ -122,8 +121,8 @@ def calc_coeffs_point():
         min_phi /= max_phi
         max_phi /= max_phi
 
-        z_max_Phi = z[ind_max_phi]
-        z_min_Phi = z[ind_min_phi]
+        z_max_phi = z[ind_max_phi]
+        z_min_phi = z[ind_min_phi]
 
         # coeffs
         num_beta = phi*phi
@@ -139,16 +138,9 @@ def calc_coeffs_point():
 
         dif_phi = interp1d(z, dphi, kind='cubic', fill_value="extrapolate")
         temp = np.diff(dphi)/np.diff(z)
-        print(np.diff(dphi))
-        d2phi = temp
-        print(len(d2phi))
-
-        plt.plot(d2phi, z)
-        # plt.gca().invert_yaxis()
-        plt.show()
-
+        d2phi = np.append(temp, temp[-1])
         dif2_phi = interp1d(z,d2phi, kind='cubic', fill_value="extrapolate")
-        iter = 0
+
         while True:
             sol = odeint(sys_f_or_tn, init_cond, z, args=(N, c[i], alpha[i], dif_phi, dif2_phi),
                          rtol=[1e-4, 1e-4], atol=[1e-6, 1e-6])
@@ -158,8 +150,8 @@ def calc_coeffs_point():
             t_zmax = t[ind_max_phi]
             coef = -np.sign(phi[ind_max_phi])
 
-            t_z_phi = t + coef * t_zmax*phi
-            dt_z_phi = dt + coef * t_zmax*dphi
+            t_z_phi = t + coef * t_zmax * phi
+            dt_z_phi = dt + coef * t_zmax * dphi
 
             t_end = t_z_phi[n_z_grid]
 
@@ -171,8 +163,6 @@ def calc_coeffs_point():
             else:
                 epsilon_t = epsilot_t_exact
 
-            iter +=1
-            print(iter)
             if np.abs(t_end - t_end_prev) <= epsilon_t or (np.abs(t_end / np.max(np.abs(t_z_phi))) <= epsilon_t):
                 print('Tn or F finished')
                 break
@@ -187,7 +177,26 @@ def calc_coeffs_point():
         term4_a1 = -4 * alpha[i] * dt_z_phi * dphi
         term5_a1 = -(alpha[i])**2 / c[i] * denom
         num_alpha1 = term1_a1 + term2_a1 + term3_a1 + term4_a1 + term5_a1
-        alpha1[i] = 1/2 * np.trapz(num_alpha1, z)/np.trapz(denom, z)
+        alpha1[i] = 1/2 * np.trapz(num_alpha1, z) / np.trapz(denom, z)
+
+        # revert z:
+        z_grid_tmp = z
+        phi_tmp = phi
+        dphi_tmp = dphi
+        t_z_phi_tmp = t_z_phi
+
+        # reverse coordinate z
+        len_z = len(z)
+        for m in range(0, len_z):
+            z[len_data - 1 - i] = max_depth - z_grid_tmp[m]
+            phi[len_data - 1 - i] = phi_tmp[m]
+            dphi[len_data - 1 - i] = -dphi_tmp[m]      # sign changed
+            t_z_phi[len_data - 1 - i] = t_z_phi_tmp[m]
+
+        t_z_phi_norm = t_z_phi / np.max(np.abs(t_z_phi))
+        z_max_phi = max_depth - z_max_phi
+        z_min_Phi = max_depth - z_min_phi
+        z_zer_phi = max_depth - z_zer_phi
 
         print(c)
         print(beta)
@@ -262,7 +271,7 @@ def calc_coeffs_point_new():
                 if phi[j - 1] * phi[j] < 0:
                     zero_counter += 1
                     z_zer[zero_counter] = z[j - 1]
-            z_zer_Phi = z_zer[i]
+            z_zer_phi = z_zer[i]
 
             print(iter)
             print('c = {}'.format(c[i]))
