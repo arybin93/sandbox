@@ -202,6 +202,10 @@ def calc_coeffs_point():
         print(beta)
         print(alpha)
         print(alpha1)
+        print(t_z_phi_norm)
+        print(z_max_phi)
+        print(z_min_Phi)
+        print(z_zer_phi)
 
 
 def sys_phi_new(z, y, c, N):
